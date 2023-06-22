@@ -26,7 +26,7 @@
     <name>Legend Engine</name>
     <groupId>org.finos.legend.engine</groupId>
     <artifactId>legend-engine</artifactId>
-    <version>4.12.2-SNAPSHOT</version>
+    <version>4.16.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -66,6 +66,10 @@
         <module>legend-engine-xt-persistence-cloud-protocol</module>
         <module>legend-engine-xt-persistence-cloud-pure</module>
 
+        <module>legend-engine-xt-persistence-target-relational-grammar</module>
+        <module>legend-engine-xt-persistence-target-relational-protocol</module>
+        <module>legend-engine-xt-persistence-target-relational-pure</module>
+
         <module>legend-engine-xt-mastery-grammar</module>
         <module>legend-engine-xt-mastery-protocol</module>
         <module>legend-engine-xt-mastery-pure</module>
@@ -104,12 +108,14 @@
         <module>legend-engine-xt-relationalStore-executionPlan-connection</module>
         <module>legend-engine-xt-relationalStore-executionPlan-connection-tests</module>
         <module>legend-engine-xt-relationalStore-executionPlan-connection-api</module>
+        <module>legend-engine-xt-relationalStore-h2-1.4.200-execution</module>
         <module>legend-engine-xt-relationalStore-pure</module>
         <module>legend-engine-xt-relationalStore-postgres-execution-tests</module>
         <module>legend-engine-xt-relationalStore-api</module>
         <module>legend-engine-xt-relationalStore-grammar</module>
         <module>legend-engine-xt-relationalStore-protocol</module>
         <module>legend-engine-xt-relationalStore-test-server</module>
+        <module>legend-engine-xt-relationalStore-mutation-executionPlan-test</module>
 
         <module>legend-engine-xt-relationalStore-sqlserver-execution</module>
         <module>legend-engine-xt-relationalStore-sqlserver-execution-tests</module>
@@ -300,8 +306,8 @@
 
     <properties>
         <!-- Legend -->
-        <legend.pure.version>4.5.2</legend.pure.version>
-        <legend.shared.version>0.23.3</legend.shared.version>
+        <legend.pure.version>4.5.8</legend.pure.version>
+        <legend.shared.version>0.23.7</legend.shared.version>
 
         <!-- SONAR -->
         <sonar.projectKey>legend-engine</sonar.projectKey>
@@ -326,11 +332,11 @@
         <maven.compiler.release>8</maven.compiler.release>
         <maven.enforcer.requireJavaVersion>[11.0.10,12)</maven.enforcer.requireJavaVersion>
         <project.build.outputTimestamp>1680115922</project.build.outputTimestamp>
-        <surefire.vm.params>-XX:SoftRefLRUPolicyMSPerMB=1 -Dlegend.test.h2.properties=""</surefire.vm.params>
+        <surefire.vm.params>-XX:SoftRefLRUPolicyMSPerMB=1</surefire.vm.params>
 
         <!-- Databases -->
         <hikaricp.version>4.0.3</hikaricp.version>
-        <h2.version>1.4.200</h2.version>
+        <h2.version>2.1.214</h2.version>
         <snowflake.version>3.13.5</snowflake.version>
         <databricks.version>2.6.27</databricks.version>
         <redshiftJDBC.version>2.0.0.3</redshiftJDBC.version>
@@ -390,6 +396,9 @@
         <wiremock.version>2.27.2</wiremock.version>
         <io.netty.version>4.1.52.Final</io.netty.version>
         <amazon.awssdk.version>2.17.129</amazon.awssdk.version>
+        <opencsv.version>4.6</opencsv.version>
+        <logback.version>1.2.3</logback.version>
+        <logback-contrib.version>0.1.5</logback-contrib.version>
 
         <!-- Plugin versions -->
         <maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
@@ -405,7 +414,7 @@
         <maven.checkstyle.plugin.version>3.1.1</maven.checkstyle.plugin.version>
         <versions.maven.plugin.version>2.7</versions.maven.plugin.version>
         <nexus.staging.maven.plugin.version>1.6.8</nexus.staging.maven.plugin.version>
-        <jacoco.maven.plugin.version>0.8.5</jacoco.maven.plugin.version>
+        <jacoco.maven.plugin.version>0.8.10</jacoco.maven.plugin.version>
         <exec.maven.plugin.version>3.0.0</exec.maven.plugin.version>
         <build-helper.maven.plugin.version>3.2.0</build-helper.maven.plugin.version>
         <dockerfile.maven.plugin.version>1.4.13</dockerfile.maven.plugin.version>
@@ -1116,6 +1125,22 @@
 
             <dependency>
                 <groupId>org.finos.legend.engine</groupId>
+                <artifactId>legend-engine-xt-persistence-target-relational-protocol</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.finos.legend.engine</groupId>
+                <artifactId>legend-engine-xt-persistence-target-relational-grammar</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.finos.legend.engine</groupId>
+                <artifactId>legend-engine-xt-persistence-target-relational-pure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.finos.legend.engine</groupId>
                 <artifactId>legend-engine-xt-persistence-component-logical-plan</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1800,6 +1825,11 @@
             </dependency>
             <dependency>
                 <groupId>org.finos.legend.engine</groupId>
+                <artifactId>legend-engine-pure-ide-light-metadata-pure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.finos.legend.engine</groupId>
                 <artifactId>legend-engine-xt-javaGeneration-pure</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1887,6 +1917,12 @@
                 <groupId>org.finos.legend.engine</groupId>
                 <artifactId>legend-engine-xt-sql-query</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.finos.legend.engine</groupId>
+                <artifactId>legend-engine-xt-sql-query</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
             </dependency>
             <dependency>
                 <groupId>org.finos.legend.engine</groupId>
@@ -2301,6 +2337,26 @@
                 <artifactId>log4j</artifactId>
                 <version>${log4j.version}</version>
             </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback.contrib</groupId>
+                <artifactId>logback-json-classic</artifactId>
+                <version>${logback-contrib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback.contrib</groupId>
+                <artifactId>logback-jackson</artifactId>
+                <version>${logback-contrib.version}</version>
+            </dependency>
             <!-- LOGGING -->
 
             <!-- OPEN TRACING -->
@@ -2597,6 +2653,11 @@
                 <version>${prometheus.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.prometheus.jmx</groupId>
+                <artifactId>jmx_prometheus_javaagent</artifactId>
+                <version>0.18.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
@@ -2711,7 +2772,6 @@
                 <version>${jetty.version}</version>
             </dependency>
             <!-- Jetty -->
-
 
             <!-- Database -->
             <dependency>
@@ -2845,6 +2905,28 @@
                 <artifactId>netty-all</artifactId>
                 <version>${io.netty.version}</version>
             </dependency>
+
+            <!-- Open CSV -->
+            <dependency>
+                <groupId>com.opencsv</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>${opencsv.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-collections4</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
         </dependencies>
 
     </dependencyManagement>

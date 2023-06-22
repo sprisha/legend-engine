@@ -23,15 +23,15 @@ import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.block.function.Function;
 import org.eclipse.collections.api.collection.MutableCollection;
 import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.map.MutableMap;
 import org.eclipse.collections.api.multimap.MutableMultimap;
 import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.factory.Maps;
-import org.eclipse.collections.impl.list.mutable.FastList;
 import org.eclipse.collections.impl.tuple.Tuples;
 import org.eclipse.collections.impl.utility.Iterate;
 import org.eclipse.collections.impl.utility.ListIterate;
+import org.eclipse.collections.impl.utility.internal.IterableIterate;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.PureModel;
 import org.finos.legend.engine.language.pure.modelManager.ModelManager;
 import org.finos.legend.engine.language.pure.modelManager.sdlc.configuration.MetaDataServerConfiguration;
@@ -45,9 +45,9 @@ import org.finos.legend.engine.protocol.pure.v1.model.context.PureModelContext;
 import org.finos.legend.engine.protocol.pure.v1.model.context.PureModelContextData;
 import org.finos.legend.engine.protocol.pure.v1.model.context.PureModelContextPointer;
 import org.finos.legend.engine.protocol.pure.v1.model.executionPlan.SingleExecutionPlan;
+import org.finos.legend.engine.protocol.sql.metamodel.ProtocolToMetamodelTranslator;
 import org.finos.legend.engine.protocol.sql.metamodel.Query;
 import org.finos.legend.engine.protocol.sql.metamodel.Statement;
-import org.finos.legend.engine.protocol.sql.metamodel.ProtocolToMetamodelTranslator;
 import org.finos.legend.engine.query.sql.api.sources.SQLContext;
 import org.finos.legend.engine.query.sql.api.sources.SQLSource;
 import org.finos.legend.engine.query.sql.api.sources.SQLSourceProvider;
@@ -72,6 +72,8 @@ import org.pac4j.core.profile.ProfileManager;
 import org.pac4j.jax.rs.annotations.Pac4JProfileManager;
 import org.slf4j.Logger;
 
+import java.util.List;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -81,7 +83,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.List;
+
 import static org.finos.legend.engine.plan.execution.api.result.ResultManager.manageResult;
 import static org.finos.legend.engine.plan.generation.PlanGenerator.transformExecutionPlan;
 
@@ -96,13 +98,13 @@ public class SqlExecute
     private final ModelManager modelManager;
     private final PlanExecutor planExecutor;
     private final Function<PureModel, RichIterable<? extends Root_meta_pure_extension_Extension>> routerExtensions;
-    private final MutableList<PlanTransformer> transformers;
+    private final Iterable<? extends PlanTransformer> transformers;
     private final MutableMap<Object, SQLSourceProvider> providers;
 
     public SqlExecute(ModelManager modelManager, PlanExecutor planExecutor,
                       Function<PureModel, RichIterable<? extends Root_meta_pure_extension_Extension>> routerExtensions,
                       List<SQLSourceProvider> providers,
-                      MutableList<PlanTransformer> transformers)
+                      Iterable<? extends PlanTransformer> transformers)
     {
         this.modelManager = modelManager;
         this.planExecutor = planExecutor;
@@ -113,10 +115,10 @@ public class SqlExecute
 
     public SqlExecute(ModelManager modelManager, PlanExecutor planExecutor,
                       Function<PureModel, RichIterable<? extends Root_meta_pure_extension_Extension>> extensions,
-                      MutableList<PlanTransformer> transformers, MetaDataServerConfiguration metadataServer,
+                      Iterable<? extends PlanTransformer> transformers, MetaDataServerConfiguration metadataServer,
                       DeploymentMode deploymentMode)
     {
-        this(modelManager, planExecutor, extensions, FastList.newList(), transformers);
+        this(modelManager, planExecutor, extensions, Lists.fixedSize.empty(), transformers);
     }
 
     @POST
@@ -214,6 +216,8 @@ public class SqlExecute
         Root_meta_external_query_sql_metamodel_Node query = new ProtocolToMetamodelTranslator().translate(statement, pureModel);
 
         RichIterable<Root_meta_external_query_sql_transformation_queryToPure_SQLSource> compiledSources = new SQLSourceTranslator().translate(sources, pureModel);
+        LOGGER.info("{}", new LogInfo(profiles, LoggingEventType.GENERATE_PLAN_START));
+
         Root_meta_pure_executionPlan_ExecutionPlan plan = core_external_query_sql_binding_fromPure_fromPure.Root_meta_external_query_sql_transformation_queryToPure_getPlansFromSQL_SQLSource_MANY__Node_1__Extension_MANY__ExecutionPlan_1_(compiledSources, query, routerExtensions.apply(pureModel), pureModel.getExecutionSupport());
 
         return transformExecutionPlan(plan, pureModel, PureClientVersions.production, profiles, routerExtensions.apply(pureModel), transformers);
@@ -221,7 +225,7 @@ public class SqlExecute
 
     private Pair<RichIterable<SQLSource>, PureModelContext> getSourcesAndModel(Statement statement, SQLContext context, MutableList<CommonProfile> profiles)
     {
-        List<TableSource> tables = new TableSourceExtractor().visit(statement);
+        Set<TableSource> tables = new TableSourceExtractor().visit(statement);
 
         MutableMultimap<String, TableSource> grouped = Iterate.groupBy(tables, TableSource::getType);
 
@@ -234,19 +238,20 @@ public class SqlExecute
 
         RichIterable<SQLSourceResolvedContext> resolved = grouped.keySet().collect(k -> resolve(grouped.get(k), context, providers.get(k), profiles));
 
-        boolean allCompatiblePointers = resolved.allSatisfy(p -> p.getPureModelContext() instanceof PureModelContextPointer && resolved.allSatisfy(p2 -> ((PureModelContextPointer) p.getPureModelContext()).safeEqual(p.getPureModelContext(), p2.getPureModelContext())));
+        MutableList<PureModelContext> allContexts = IterableIterate.flatCollect(resolved, SQLSourceResolvedContext::getPureModelContexts);
+        boolean allCompatiblePointers = allContexts.allSatisfy(p -> p instanceof PureModelContextPointer && allContexts.allSatisfy(p2 -> ((PureModelContextPointer) p).safeEqual(p, p2)));
 
         PureModelContext pureModelContext;
 
         //this means all pointers are from same source, so we can combine to utilise model cache.
         if (allCompatiblePointers)
         {
-            pureModelContext = resolved.collectIf(p -> p.getPureModelContext() instanceof PureModelContextPointer, p -> ((PureModelContextPointer) p.getPureModelContext()))
+            pureModelContext = allContexts.collectIf(p -> p instanceof PureModelContextPointer, p -> ((PureModelContextPointer) p))
                     .injectInto(null, (d, e) -> e.combine((PureModelContextPointer) d));
         }
         else
         {
-            pureModelContext = resolved.injectInto(PureModelContextData.newPureModelContextData(), (p, p2) -> p.combine(modelManager.loadData(p2.getPureModelContext(), PureClientVersions.production, profiles)));
+            pureModelContext = resolved.injectInto(PureModelContextData.newPureModelContextData(), (p, p2) -> PureModelContextData.combine(p, PureModelContextData.newPureModelContextData(), ListIterate.collect(p2.getPureModelContexts(), c -> modelManager.loadData(c, PureClientVersions.production, profiles)).toArray(new PureModelContextData[]{})));
         }
         RichIterable<SQLSource> sources = resolved.flatCollect(SQLSourceResolvedContext::getSources);
         return Tuples.pair(sources, pureModelContext);

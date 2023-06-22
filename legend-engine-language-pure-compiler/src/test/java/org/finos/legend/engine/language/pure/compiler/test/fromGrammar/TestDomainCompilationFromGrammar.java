@@ -259,7 +259,7 @@ public class TestDomainCompilationFromGrammar extends TestCompilationFromGrammar
                 "{\n" +
                 "   tags : [doc, doc];\n" +
                 "   stereotypes : [modifier, modifier, accessorType, accessorType];\n" +
-                "}\n",null,Arrays.asList("COMPILATION error at [1:1-5:1]: Found duplicated stereotype 'accessorType' in profile 'test::A'", "COMPILATION error at [1:1-5:1]: Found duplicated stereotype 'modifier' in profile 'test::A'", "COMPILATION error at [1:1-5:1]: Found duplicated tag 'doc' in profile 'test::A'"));
+                "}\n", null, Arrays.asList("COMPILATION error at [1:1-5:1]: Found duplicated stereotype 'accessorType' in profile 'test::A'", "COMPILATION error at [1:1-5:1]: Found duplicated stereotype 'modifier' in profile 'test::A'", "COMPILATION error at [1:1-5:1]: Found duplicated tag 'doc' in profile 'test::A'"));
     }
 
     @Test
@@ -268,7 +268,7 @@ public class TestDomainCompilationFromGrammar extends TestCompilationFromGrammar
         Pair<PureModelContextData, PureModel> res = test("Enum test::A\n" +
                 "{\n" +
                 "   TEA,COFFEE,TEA,TEA,COFFEE\n" +
-                "}\n",null, Arrays.asList("COMPILATION error at [3:4-6]: Found duplicated value 'TEA' in enumeration 'test::A'", "COMPILATION error at [3:8-13]: Found duplicated value 'COFFEE' in enumeration 'test::A'"));
+                "}\n", null, Arrays.asList("COMPILATION error at [3:4-6]: Found duplicated value 'TEA' in enumeration 'test::A'", "COMPILATION error at [3:8-13]: Found duplicated value 'COFFEE' in enumeration 'test::A'"));
     }
 
     @Test
@@ -280,7 +280,7 @@ public class TestDomainCompilationFromGrammar extends TestCompilationFromGrammar
                 "{\n" +
                 "   property1: test::A[0..1];\n" +
                 "   property1: test::B[1];\n" +
-                "}\n",null,Arrays.asList("COMPILATION error at [5:4-28]: Found duplicated property 'property1' in association 'test::C'"));
+                "}\n", null, Arrays.asList("COMPILATION error at [5:4-28]: Found duplicated property 'property1' in association 'test::C'"));
     }
 
     @Test
@@ -293,7 +293,7 @@ public class TestDomainCompilationFromGrammar extends TestCompilationFromGrammar
                 "   other : String[1];\n" +
                 "   ok : String[1];\n" +
                 "   other: String[1];\n" +
-                "}\n",null, Arrays.asList("COMPILATION error at [3:4-28]: Found duplicated property 'property' in class 'test::A'", "COMPILATION error at [5:4-21]: Found duplicated property 'other' in class 'test::A'"));
+                "}\n", null, Arrays.asList("COMPILATION error at [3:4-28]: Found duplicated property 'property' in class 'test::A'", "COMPILATION error at [5:4-21]: Found duplicated property 'other' in class 'test::A'"));
     }
 
     @Test
@@ -2520,5 +2520,243 @@ public class TestDomainCompilationFromGrammar extends TestCompilationFromGrammar
                 "}\n";
 
         test(code);
+    }
+
+    @Test
+    public void testCompilationForGraphFetchTreeWithSubTypeTreeAtRootLevel()
+    {
+        test("Class test::Address\n" +
+                "{\n" +
+                "  zipCode : String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::Street extends test::Address\n" +
+                "{\n" +
+                "  street: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "function my::test():Any[*]\n" +
+                "{\n" +
+                "  #{\n" +
+                "    test::Address {\n" +
+                "      zipCode,\n" +
+                "      ->subType(@test::Street) {\n" +
+                "        street\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }#\n" +
+                "}\n"
+        );
+
+        test("Class test::Address\n" +
+                "{\n" +
+                "  zipCode : String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::Street\n" +
+                "{\n" +
+                "  street: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "function my::test():Any[*]\n" +
+                "{\n" +
+                "  #{\n" +
+                "    test::Address {\n" +
+                "      zipCode,\n" +
+                "      ->subType(@test::Street) {\n" +
+                "        street\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }#\n" +
+                "}\n", "COMPILATION error at [16:7-18:7]: The type Street is not a subtype of Address"
+        );
+
+        test("Class test::Address\n" +
+                "{\n" +
+                "  zipCode : String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::Street extends test::Address\n" +
+                "{\n" +
+                "  street: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::City extends test::Address\n" +
+                "{\n" +
+                "  name: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "function my::test():Any[*]\n" +
+                "{\n" +
+                "  #{\n" +
+                "    test::Address {\n" +
+                "      zipCode,\n" +
+                "      ->subType(@test::Street) {\n" +
+                "        street\n" +
+                "      },\n" +
+                "      ->subType(@test::City) {\n" +
+                "        name\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }#\n" +
+                "}\n"
+        );
+
+        test("Class test::Address\n" +
+                "{\n" +
+                "  zipCode : String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::Street extends test::Address\n" +
+                "{\n" +
+                "  street: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "function my::test():Any[*]\n" +
+                "{\n" +
+                "  #{\n" +
+                "    test::Address {\n" +
+                "      zipCode,\n" +
+                "      ->subType(@test::Street) {\n" +
+                "        street\n" +
+                "      },\n" +
+                "      ->subType(@test::Street) {\n" +
+                "        street\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }#\n" +
+                "}\n", "COMPILATION error at [19:7-21:7]: There are multiple subTypeTrees having subType test::Street, Only one is allowed"
+        );
+
+        test("Class test::Address\n" +
+                "{\n" +
+                "  zipCode : String[1];\n" +
+                "  name:  String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::Street extends test::Address\n" +
+                "{\n" +
+                "  street: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::City extends test::Address\n" +
+                "{\n" +
+                "  capital: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "function my::test():Any[*]\n" +
+                "{\n" +
+                "  #{\n" +
+                "    test::Address {\n" +
+                "      zipCode,\n" +
+                "        name,\n" +
+                "      ->subType(@test::Street) {\n" +
+                "        street\n" +
+                "      },\n" +
+                "      ->subType(@test::City) {\n" +
+                "        name\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }#\n" +
+                "}\n", "COMPILATION error at [26:7-28:7]: Property \"name\" is present at root level hence should not be specified at subType level"
+        );
+
+        test("Class test::Address\n" +
+                "{\n" +
+                "  zipCode : String[1];\n" +
+                "  name:  String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::Street extends test::Address\n" +
+                "{\n" +
+                "  street: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::City extends test::Address\n" +
+                "{\n" +
+                "  capital: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "function my::test():Any[*]\n" +
+                "{\n" +
+                "  #{\n" +
+                "    test::Address {\n" +
+                "      zipCode,\n" +
+                "        'alias':name,\n" +
+                "      ->subType(@test::Street) {\n" +
+                "        street\n" +
+                "      },\n" +
+                "      ->subType(@test::City) {\n" +
+                "        'alias':capital\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }#\n" +
+                "}\n", "COMPILATION error at [26:7-28:7]: Property \"alias\" is present at root level hence should not be specified at subType level"
+        );
+
+        test("Class test::Address\n" +
+                "{\n" +
+                "  zipCode : String[1];\n" +
+                "  name:  String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::Street extends test::Address\n" +
+                "{\n" +
+                "  street: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::City extends test::Address\n" +
+                "{\n" +
+                "  capital: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "function my::test():Any[*]\n" +
+                "{\n" +
+                "  #{\n" +
+                "    test::Address {\n" +
+                "      zipCode,\n" +
+                "        name,\n" +
+                "      ->subType(@test::Street) {\n" +
+                "        street\n" +
+                "      },\n" +
+                "      ->subType(@test::City) {\n" +
+                "        'cityName' : name\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }#\n" +
+                "}\n"
+        );
+
+        test("Class test::Address\n" +
+                "{\n" +
+                "  zipCode : String[1];\n" +
+                "}\n" +
+                "\n" +
+                "Class test::City extends test::Address\n" +
+                "{\n" +
+                "  cityName: String[1];\n" +
+                "}\n" +
+                "\n" +
+                "function my::test():Any[*]\n" +
+                "{\n" +
+                "  #{\n" +
+                "    test::Address {\n" +
+                "      ->subType(@test::City) {\n" +
+                "         fakeProperty\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }#\n" +
+                "}\n", "COMPILATION error at [16:10-21]: Can't find property 'fakeProperty' in [City, Address, Any]"
+        );
+    }
+
+    @Test
+    public void testCompilationOfBinaryType()
+    {
+        // This is added to test legacy Binary primitive type usages
+        test("Class demo::Class\n" +
+                "{\n" +
+                "   binary: Binary[1];" +
+                "}\n");
     }
 }

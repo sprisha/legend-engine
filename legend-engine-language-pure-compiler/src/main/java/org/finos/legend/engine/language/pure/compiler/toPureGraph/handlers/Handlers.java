@@ -37,6 +37,7 @@ import org.finos.legend.engine.language.pure.compiler.toPureGraph.handlers.infer
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.handlers.inference.MostCommonMultiplicity;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.handlers.inference.MostCommonType;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.handlers.inference.ParametersInference;
+import org.finos.legend.engine.language.pure.compiler.toPureGraph.handlers.inference.ResolveTypeParameterInference;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.handlers.inference.ReturnInference;
 import org.finos.legend.engine.language.pure.compiler.toPureGraph.handlers.inference.TypeAndMultiplicity;
 import org.finos.legend.engine.protocol.pure.v1.model.SourceInformation;
@@ -424,18 +425,18 @@ public class Handlers
         register(m(m(h("meta::pure::tds::agg_String_1__FunctionDefinition_1__FunctionDefinition_1__AggregateValue_1_", false, ps -> res(new Root_meta_pure_metamodel_type_generics_GenericType_Impl("", null, this.pureModel.getClass("meta::pure::metamodel::type::generics::GenericType"))
                         ._rawType(this.pureModel.getType("meta::pure::tds::AggregateValue"))
                         ._typeArguments(Lists.fixedSize.of(funcReturnType(ps.get(1)), funcReturnType(ps.get(2)))),
-                        "one"), ps -> ps.size() == 3 && typeOne(ps.get(0), "String"))),
+                        "one"), ps -> Lists.fixedSize.of(funcReturnType(ps.get(1)), funcReturnType(ps.get(2))), ps -> ps.size() == 3 && typeOne(ps.get(0), "String"))),
                 m(h("meta::pure::functions::collection::agg_FunctionDefinition_1__FunctionDefinition_1__AggregateValue_1_", false, ps -> res("meta::pure::functions::collection::AggregateValue", "one"), ps -> true))));
 
 
         register(m(m(h("meta::pure::tds::col_Function_1__String_1__String_1__BasicColumnSpecification_1_", false, ps -> res(new Root_meta_pure_metamodel_type_generics_GenericType_Impl("", null, this.pureModel.getClass("meta::pure::metamodel::type::generics::GenericType"))
                         ._rawType(this.pureModel.getType("meta::pure::tds::BasicColumnSpecification"))
                         ._typeArguments(Lists.fixedSize.of(funcType(ps.get(0)._genericType())._parameters().getOnly()._genericType())),
-                "one"), ps -> ps.size() == 3)),
+                "one"), ps -> Lists.fixedSize.of(funcType(ps.get(0)._genericType())._parameters().getOnly()._genericType()), ps -> ps.size() == 3)),
                 m(h("meta::pure::tds::col_Function_1__String_1__BasicColumnSpecification_1_", false, ps -> res(new Root_meta_pure_metamodel_type_generics_GenericType_Impl("", null, this.pureModel.getClass("meta::pure::metamodel::type::generics::GenericType"))
                                 ._rawType(this.pureModel.getType("meta::pure::tds::BasicColumnSpecification"))
                                 ._typeArguments(Lists.fixedSize.of(funcType(ps.get(0)._genericType())._parameters().getOnly()._genericType())),
-                        "one"), ps -> true))));
+                        "one"), ps -> Lists.fixedSize.of(funcType(ps.get(0)._genericType())._parameters().getOnly()._genericType()), ps -> true))));
         // ----------------------------
 
 
@@ -557,7 +558,13 @@ public class Handlers
                 m(h("meta::pure::graphFetch::execution::graphFetch_T_MANY__RootGraphFetchTree_1__Integer_1__T_MANY_", false, ps -> res(ps.get(0)._genericType(), "zeroMany"), ps -> ps.size() == 3))
                 )
         );
-        register("meta::pure::graphFetch::execution::graphFetchChecked_T_MANY__RootGraphFetchTree_1__Checked_MANY_", false, ps -> res(new Root_meta_pure_metamodel_type_generics_GenericType_Impl("", null, this.pureModel.getClass("meta::pure::metamodel::type::generics::GenericType"))._rawType(this.pureModel.getType("meta::pure::dataQuality::Checked"))._typeArgumentsAdd(ps.get(0)._genericType()), "zeroMany"));
+
+        register(m(
+                m(h("meta::pure::graphFetch::execution::graphFetchChecked_T_MANY__RootGraphFetchTree_1__Checked_MANY_", false, ps -> res(new Root_meta_pure_metamodel_type_generics_GenericType_Impl("", null, this.pureModel.getClass("meta::pure::metamodel::type::generics::GenericType"))._rawType(this.pureModel.getType("meta::pure::dataQuality::Checked"))._typeArgumentsAdd(ps.get(0)._genericType()), "zeroMany"), ps -> Lists.mutable.with(ps.get(0)._genericType()._typeArguments().getFirst()), ps -> ps.size() == 2)),
+                m(h("meta::pure::graphFetch::execution::graphFetchChecked_T_MANY__RootGraphFetchTree_1__Integer_1__Checked_MANY_", false, ps -> res(new Root_meta_pure_metamodel_type_generics_GenericType_Impl("", null, this.pureModel.getClass("meta::pure::metamodel::type::generics::GenericType"))._rawType(this.pureModel.getType("meta::pure::dataQuality::Checked"))._typeArgumentsAdd(ps.get(0)._genericType()), "zeroMany"), ps -> Lists.mutable.with(ps.get(0)._genericType()._typeArguments().getFirst()), ps -> ps.size() == 3))
+                )
+        );
+
         register("meta::pure::graphFetch::execution::graphFetchUnexpanded_T_MANY__RootGraphFetchTree_1__T_MANY_", false, ps -> res(ps.get(0)._genericType(), "zeroMany"));
         register("meta::pure::graphFetch::execution::graphFetchCheckedUnexpanded_T_MANY__RootGraphFetchTree_1__Checked_MANY_", false, ps -> res(new Root_meta_pure_metamodel_type_generics_GenericType_Impl("", null, this.pureModel.getClass("meta::pure::metamodel::type::generics::GenericType"))._rawType(this.pureModel.getType("meta::pure::dataQuality::Checked"))._typeArgumentsAdd(ps.get(0)._genericType()), "zeroMany"));
         register(m(
@@ -610,6 +617,7 @@ public class Handlers
                 m(h("meta::legend::service::get_ExecutionEnvironmentInstance_1__String_1__SingleExecutionParameters_1_", false, ps -> res("meta::legend::service::metamodel::SingleExecutionParameters", "one"), ps -> ps.size() == 2)),
                 m(h("meta::legend::service::get_ExecutionEnvironmentInstance_1__String_1__String_1__SingleExecutionParameters_1_", false, ps -> res("meta::legend::service::metamodel::SingleExecutionParameters", "one"), ps -> ps.size() == 3))));
 
+        register(m(h("meta::pure::mutation::save_T_MANY__RootGraphFetchTree_1__Mapping_1__Runtime_1__T_MANY_", false, ps -> res(ps.get(0)._genericType(), "zeroMany"), ps -> true)));
 
         // Extensions
         CompileContext context = this.pureModel.getContext();
@@ -1036,7 +1044,8 @@ public class Handlers
                         h("meta::pure::functions::math::min_Number_MANY__Number_$0_1$_", false, ps -> res("Number", "zeroOne"), ps -> typeMany(ps.get(0), "Number")),
                         h("meta::pure::functions::date::min_DateTime_MANY__DateTime_$0_1$_", false, ps -> res("DateTime", "zeroOne"), ps -> typeMany(ps.get(0), "DateTime")),
                         h("meta::pure::functions::date::min_StrictDate_MANY__StrictDate_$0_1$_", false, ps -> res("StrictDate", "zeroOne"), ps -> typeMany(ps.get(0), "StrictDate")),
-                        h("meta::pure::functions::date::min_Date_MANY__Date_$0_1$_", false, ps -> res("Date", "zeroOne"), ps -> typeMany(ps.get(0), "Date")))));
+                        h("meta::pure::functions::date::min_Date_MANY__Date_$0_1$_", false, ps -> res("Date", "zeroOne"), ps -> typeMany(ps.get(0), "Date")),
+                        h("meta::pure::functions::collection::min_X_MANY__X_$0_1$_", false, ps -> res(ps.get(0)._genericType(), "zeroOne")))));
     }
 
     private void registerAlgebra()
@@ -1052,7 +1061,9 @@ public class Handlers
                 h("meta::pure::functions::math::times_Decimal_MANY__Decimal_1_", true, ps -> res("Decimal", "one"), ps -> typeMany(ps.get(0), "Decimal")));
 
 
-        register("meta::pure::functions::math::divide_Number_1__Number_1__Float_1_", true, ps -> res("Float", "one"));
+        register(m(m(h("meta::pure::functions::math::divide_Number_1__Number_1__Float_1_", true, ps -> res("Float", "one"), ps -> ps.size() == 2)),
+                   m(h("meta::pure::functions::math::divide_Decimal_1__Decimal_1__Integer_1__Decimal_1_", true, ps -> res("Decimal", "one"), ps -> ps.size() == 3))));
+
 
         register(h("meta::pure::functions::string::plus_String_MANY__String_1_", false, ps -> res("String", "one"), ps -> ps.size() == 1 && typeMany(ps.get(0), "String")),
                 h("meta::pure::functions::math::plus_Integer_MANY__Integer_1_", true, ps -> res("Integer", "one"), ps -> ps.size() == 1 && typeMany(ps.get(0), "Integer")),
@@ -1085,10 +1096,17 @@ public class Handlers
 
     private void registerOlapMath()
     {
-        register("meta::pure::functions::math::olap::rank_Any_MANY__Map_1_", false, ps -> res("meta::pure::functions::collection::Map", "one"));
-        register("meta::pure::functions::math::olap::averageRank_Any_MANY__Map_1_", false, ps -> res("meta::pure::functions::collection::Map", "one"));
-        register("meta::pure::functions::math::olap::denseRank_Any_MANY__Map_1_", false, ps -> res("meta::pure::functions::collection::Map", "one"));
-        register("meta::pure::functions::math::olap::rowNumber_Any_MANY__Map_1_", false, ps -> res("meta::pure::functions::collection::Map", "one"));
+        ReturnInference resolve = ps -> res(new Root_meta_pure_metamodel_type_generics_GenericType_Impl("", null, this.pureModel.getClass("meta::pure::metamodel::type::generics::GenericType"))
+                ._rawType(this.pureModel.getType("meta::pure::functions::collection::Map"))
+                ._typeArguments(FastList.newListWith(
+                        this.pureModel.getGenericType("meta::pure::metamodel::type::Any"),
+                        this.pureModel.getGenericType("Integer")
+                )), "one");
+
+        register("meta::pure::functions::math::olap::rank_Any_MANY__Map_1_", false, resolve);
+        register("meta::pure::functions::math::olap::averageRank_Any_MANY__Map_1_", false, resolve);
+        register("meta::pure::functions::math::olap::denseRank_Any_MANY__Map_1_", false, resolve);
+        register("meta::pure::functions::math::olap::rowNumber_Any_MANY__Map_1_", false, resolve);
     }
 
     private void registerAggregations()
@@ -1128,7 +1146,9 @@ public class Handlers
     {
         register(h("meta::pure::runtime::mergeRuntimes_Any_$1_MANY$__Runtime_1_", false, ps -> res("meta::pure::runtime::Runtime", "one"), ps -> true));
         register(h("meta::pure::runtime::getRuntimeWithModelConnection_Class_1__Any_MANY__Runtime_1_", false, ps -> res("meta::pure::runtime::Runtime", "one"), ps -> true));
-        register(h("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__Binding_1__Byte_MANY__Runtime_1_", false, ps -> res("meta::pure::runtime::Runtime", "one"), ps -> typeMany(ps.get(2), "Byte")),
+        register(h("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__String_1__String_1__Runtime_1_", false, ps -> res("meta::pure::runtime::Runtime", "one"), ps -> typeOne(ps.get(1), "String") && typeOne(ps.get(2), "String")),
+                h("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__String_1__Byte_MANY__Runtime_1_", false, ps -> res("meta::pure::runtime::Runtime", "one"), ps -> typeOne(ps.get(1), "String") && typeMany(ps.get(2), "Byte")),
+                h("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__Binding_1__Byte_MANY__Runtime_1_", false, ps -> res("meta::pure::runtime::Runtime", "one"), ps -> typeMany(ps.get(2), "Byte")),
                 h("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__Binding_1__String_1__Runtime_1_", false, ps -> res("meta::pure::runtime::Runtime", "one"), ps -> typeOne(ps.get(2), "String")));
         register(h("meta::pure::runtime::generateGuid__String_1_", true, ps -> res("String", "one"), ps -> true));
         register(h("meta::pure::runtime::currentUserId__String_1_", true, ps -> res("String", "one"), ps -> true));
@@ -1367,6 +1387,11 @@ public class Handlers
     public FunctionHandler h(String name, boolean isNative, ReturnInference returnInference, Dispatch dispatch)
     {
         return new FunctionHandler(this.pureModel, name, isNative, returnInference, dispatch);
+    }
+
+    public FunctionHandler h(String name, boolean isNative, ReturnInference returnInference, ResolveTypeParameterInference resolvedTypeParametersInference, Dispatch dispatch)
+    {
+        return new FunctionHandler(this.pureModel, name, isNative, returnInference, resolvedTypeParametersInference, dispatch);
     }
 
     public RequiredInferenceSimilarSignatureFunctionExpressionBuilder grp(ParametersInference parametersInference, FunctionHandler... handlers)
@@ -1997,6 +2022,8 @@ public class Handlers
         map.put("meta::pure::runtime::getRuntimeWithModelConnection_Class_1__Any_MANY__Runtime_1_", (List<ValueSpecification> ps) -> ps.size() == 2 && isOne(ps.get(0)._multiplicity()) && Sets.immutable.with("Nil", "Class", "MappingClass", "ClassProjection").contains(ps.get(0)._genericType()._rawType()._name()));
         map.put("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__Binding_1__Byte_MANY__Runtime_1_", (List<ValueSpecification> ps) -> ps.size() == 3 && isOne(ps.get(0)._multiplicity()) && Sets.immutable.with("Nil","Class","ClassProjection","MappingClass").contains(ps.get(0)._genericType()._rawType()._name()) && isOne(ps.get(1)._multiplicity()) && ("Nil".equals(ps.get(1)._genericType()._rawType()._name()) || "Binding".equals(ps.get(1)._genericType()._rawType()._name())) && ("Nil".equals(ps.get(2)._genericType()._rawType()._name()) || "Byte".equals(ps.get(2)._genericType()._rawType()._name())));
         map.put("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__Binding_1__String_1__Runtime_1_", (List<ValueSpecification> ps) -> ps.size() == 3 && isOne(ps.get(0)._multiplicity()) && Sets.immutable.with("Nil","Class","ClassProjection","MappingClass").contains(ps.get(0)._genericType()._rawType()._name()) && isOne(ps.get(1)._multiplicity()) && ("Nil".equals(ps.get(1)._genericType()._rawType()._name()) || "Binding".equals(ps.get(1)._genericType()._rawType()._name())) && isOne(ps.get(2)._multiplicity()) && ("Nil".equals(ps.get(2)._genericType()._rawType()._name()) || "String".equals(ps.get(2)._genericType()._rawType()._name())));
+        map.put("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__String_1__Byte_MANY__Runtime_1_", (List<ValueSpecification> ps) -> ps.size() == 3 && isOne(ps.get(0)._multiplicity()) && Sets.immutable.with("Nil","Class","ClassProjection","MappingClass").contains(ps.get(0)._genericType()._rawType()._name()) && isOne(ps.get(1)._multiplicity()) && ("Nil".equals(ps.get(1)._genericType()._rawType()._name()) || "String".equals(ps.get(1)._genericType()._rawType()._name())) && ("Nil".equals(ps.get(2)._genericType()._rawType()._name()) || "Byte".equals(ps.get(2)._genericType()._rawType()._name())));
+        map.put("meta::pure::runtime::getRuntimeWithModelQueryConnection_Class_1__String_1__String_1__Runtime_1_", (List<ValueSpecification> ps) -> ps.size() == 3 && isOne(ps.get(0)._multiplicity()) && Sets.immutable.with("Nil","Class","ClassProjection","MappingClass").contains(ps.get(0)._genericType()._rawType()._name()) && isOne(ps.get(1)._multiplicity()) && ("Nil".equals(ps.get(1)._genericType()._rawType()._name()) || "String".equals(ps.get(1)._genericType()._rawType()._name())) && isOne(ps.get(2)._multiplicity()) && ("Nil".equals(ps.get(2)._genericType()._rawType()._name()) || "String".equals(ps.get(2)._genericType()._rawType()._name())));
         map.put("meta::pure::tds::agg_String_1__FunctionDefinition_1__FunctionDefinition_1__AggregateValue_1_", (List<ValueSpecification> ps) -> ps.size() == 3 && isOne(ps.get(0)._multiplicity()) && ("Nil".equals(ps.get(0)._genericType()._rawType()._name()) || "String".equals(ps.get(0)._genericType()._rawType()._name())) && isOne(ps.get(1)._multiplicity()) && Sets.immutable.with("Nil", "FunctionDefinition", "QualifiedProperty", "ConcreteFunctionDefinition", "LambdaFunction", "NewPropertyRouteNodeFunctionDefinition").contains(ps.get(1)._genericType()._rawType()._name()) && isOne(ps.get(2)._multiplicity()) && Sets.immutable.with("Nil", "FunctionDefinition", "QualifiedProperty", "ConcreteFunctionDefinition", "LambdaFunction", "NewPropertyRouteNodeFunctionDefinition").contains(ps.get(2)._genericType()._rawType()._name()));
         map.put("meta::pure::tds::asc_String_1__SortInformation_1_", (List<ValueSpecification> ps) -> ps.size() == 1 && isOne(ps.get(0)._multiplicity()) && ("Nil".equals(ps.get(0)._genericType()._rawType()._name()) || "String".equals(ps.get(0)._genericType()._rawType()._name())));
         map.put("meta::pure::tds::col_Function_1__String_1__BasicColumnSpecification_1_", (List<ValueSpecification> ps) -> ps.size() == 2 && isOne(ps.get(0)._multiplicity()) && ("Nil".equals(ps.get(0)._genericType()._rawType()._name()) || check(funcType(ps.get(0)._genericType()), (FunctionType ft) -> check(ft._parameters().toList(), (List<? extends VariableExpression> nps) -> nps.size() == 1 && isOne(nps.get(0)._multiplicity())))) && isOne(ps.get(1)._multiplicity()) && ("Nil".equals(ps.get(1)._genericType()._rawType()._name()) || "String".equals(ps.get(1)._genericType()._rawType()._name())));

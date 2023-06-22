@@ -121,8 +121,14 @@ function meta::pure::graphFetch::executionPlan::planGraphFetchExecution(sq: Stor
                                                                                  vs: ValueSpecification[1] | $fe.multiplicity->toOne()]);
    assert($fe.func->in(graphFetchFunctions()) || $fe->isUnionOnGraphFetch(true));
    let clusteredTreePreFilter  = $fe.parametersValues->evaluateAndDeactivate()->at(1)->cast(@InstanceValue).values->at(0)->cast(@ClusteredGraphFetchTree);
+   
+   let chainConnection = if ($sq.store->instanceOf(ModelStore),
+                             | $runtime.connections->filter(c|$c.element->instanceOf(ModelStore) && $c->instanceOf(ModelChainConnection));,
+                             | []
+                         );
+   
    let possibleFilter =  $fe->graphFetchFilter()->evaluateAndDeactivate();
-   let  clusteredTree = if($possibleFilter->isNotEmpty()  && $sq.store-> instanceOf(ModelStore),
+   let clusteredTree = if($possibleFilter->isNotEmpty()  && $sq.store-> instanceOf(ModelStore) && $chainConnection->isEmpty(),
                               |  meta::pure::graphFetch::executionPlan::enrichTargetTreeForFilterProperties($clusteredTreePreFilter,$possibleFilter->toOne(),$mapping, $exeCtx,$runtime,$extensions,$debug);,
                               |$clusteredTreePreFilter
                           );

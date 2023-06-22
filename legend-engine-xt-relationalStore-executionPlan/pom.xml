@@ -19,13 +19,23 @@
     <parent>
         <groupId>org.finos.legend.engine</groupId>
         <artifactId>legend-engine</artifactId>
-        <version>4.12.2-SNAPSHOT</version>
+        <version>4.16.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>legend-engine-xt-relationalStore-executionPlan</artifactId>
     <packaging>jar</packaging>
     <name>Legend Engine - XT - Relational Store - Execution Plan</name>
+
+    <profiles>
+       <!-- To test some of the legacy H2 classes-->
+        <profile>
+            <id>h2-1.4.200</id>
+            <properties>
+                <h2.version>1.4.200</h2.version>
+            </properties>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -318,18 +328,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-test-runner-mapping</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.finos.legend.pure</groupId>
             <artifactId>legend-pure-m2-dsl-mapping-grammar</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.finos.legend.engine</groupId>
-            <artifactId>legend-engine-test-runner-shared</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

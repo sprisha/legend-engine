@@ -14,11 +14,12 @@
 
 package org.finos.legend.engine.plan.execution.stores.relational.connection.driver.vendors.h2;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.impl.factory.Lists;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.authentication.AuthenticationStrategy;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.DatabaseManager;
-import org.finos.legend.engine.plan.execution.stores.relational.connection.driver.commands.RelationalDatabaseCommands;
 import org.finos.legend.engine.plan.execution.stores.relational.connection.ds.specifications.EmbeddedH2DataSourceSpecification;
 
 import java.util.Properties;
@@ -26,6 +27,18 @@ import java.util.Properties;
 public class H2Manager extends DatabaseManager
 {
     public static final String DATABASE_TO_UPPER = "DATABASE_TO_UPPER";
+
+    public static int getMajorVersion()
+    {
+        try
+        {
+            return DriverManager.getDriver("jdbc:h2:").getMajorVersion();
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException("cannot identify H2 driver major version", e);
+        }
+    }
 
     @Override
     public MutableList<String> getIds()
@@ -46,7 +59,20 @@ public class H2Manager extends DatabaseManager
         {
             databaseName += String.format(";%s=%s", DATABASE_TO_UPPER, extraUserDataSourceProperties.getProperty(DATABASE_TO_UPPER));
         }
-        return "jdbc:h2:tcp://" + host + ":" + port + "/mem:" + databaseName;
+
+        String defaultH2Properties;
+
+        if (getMajorVersion() == 2)
+        {
+            defaultH2Properties = System.getProperty("legend.test.h2.properties",
+                    ";NON_KEYWORDS=ANY,ASYMMETRIC,AUTHORIZATION,CAST,CURRENT_PATH,CURRENT_ROLE,DAY,DEFAULT,ELSE,END,HOUR,KEY,MINUTE,MONTH,SECOND,SESSION_USER,SET,SOME,SYMMETRIC,SYSTEM_USER,TO,UESCAPE,USER,VALUE,WHEN,YEAR;MODE=LEGACY");
+        }
+        else
+        {
+            defaultH2Properties = "";
+        }
+
+        return "jdbc:h2:tcp://" + host + ":" + port + "/mem:" + databaseName + defaultH2Properties;
     }
 
     @Override
@@ -56,7 +82,7 @@ public class H2Manager extends DatabaseManager
     }
 
     @Override
-    public RelationalDatabaseCommands relationalDatabaseSupport()
+    public H2Commands relationalDatabaseSupport()
     {
         return new H2Commands();
     }
